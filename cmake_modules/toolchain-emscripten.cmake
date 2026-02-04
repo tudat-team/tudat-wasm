@@ -167,6 +167,7 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL_INIT "-Os -DNDEBUG")
 # -s DISABLE_EXCEPTION_CATCHING=0: Enable C++ exceptions (required for Tudat)
 # -s ALLOW_MEMORY_GROWTH=1: Allow heap to grow dynamically
 # Note: MODULARIZE and EXPORT_ES6 are set per-target since they vary by use case
+# Note: Add -s ASSERTIONS=1 for debugging if needed
 set(CMAKE_EXE_LINKER_FLAGS_INIT "-s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1")
 
 # Force appropriate Tudat build options for WASM

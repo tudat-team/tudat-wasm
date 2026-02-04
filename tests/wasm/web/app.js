@@ -499,8 +499,7 @@ class TudatTestRunner {
 
     async setupCesium() {
         // No Ion token needed - we use local imagery files
-        // Set base URL for local Cesium assets (Workers, etc.)
-        window.CESIUM_BASE_URL = 'cesium/';
+        // CESIUM_BASE_URL is set in index.html before Cesium.js loads
 
         // Create Blue Marble imagery provider (day texture)
         const blueMarbleProvider = await Cesium.SingleTileImageryProvider.fromUrl(

@@ -261,15 +261,7 @@ if(EMSCRIPTEN)
         COMMENT "Copying Earth imagery files to build directory"
     )
 
-    # Copy CesiumJS library (local copy for offline use)
-    add_custom_command(
-        OUTPUT "${WASM_WEB_DIR}/cesium/Cesium.js"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_CURRENT_SOURCE_DIR}/web/cesium"
-            "${WASM_WEB_DIR}/cesium"
-        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web/cesium/Cesium.js"
-        COMMENT "Copying CesiumJS library to build directory"
-    )
+    # CesiumJS is loaded from CDN - no local copy needed
 
     # Copy visualizations directory (includes all visualization modules and examples)
     add_custom_command(
@@ -303,11 +295,11 @@ if(EMSCRIPTEN)
     )
 
     # Create a target for the web files that tudat_wasm_web depends on
+    # Note: CesiumJS is loaded from CDN, no local dependency needed
     add_custom_target(tudat_wasm_web_files
         DEPENDS "${WASM_WEB_DIR}/index.html" "${WASM_WEB_DIR}/app.js" "${WASM_WEB_DIR}/testWorker.js"
                 "${WASM_WEB_DIR}/imagery/world.topo.bathy.200407.3x5400x2700.jpg"
                 "${WASM_WEB_DIR}/imagery/BlackMarble_2016_3km.jpeg"
-                "${WASM_WEB_DIR}/cesium/Cesium.js"
                 "${WASM_WEB_DIR}/visualizations/index.js"
                 "${WASM_WEB_DIR}/api/index.html"
                 "${WASM_WEB_DIR}/data/ephemeris/earth_sun_j2000.json"

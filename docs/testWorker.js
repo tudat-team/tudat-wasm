@@ -1,6 +1,20 @@
 // Web Worker for running WASM tests off the main thread
 // This keeps the UI responsive while tests execute
 
+// Global error handler for uncaught errors
+self.onerror = function(message, source, lineno, colno, error) {
+    const errorMsg = error?.message || message || 'Unknown global error';
+    console.error('Worker global error:', { message, source, lineno, colno, error });
+    self.postMessage({ type: 'error', message: `Global: ${errorMsg}` });
+    return true;
+};
+
+self.onunhandledrejection = function(event) {
+    const errorMsg = event.reason?.message || event.reason?.toString() || String(event.reason) || 'Unhandled rejection';
+    console.error('Worker unhandled rejection:', event.reason);
+    self.postMessage({ type: 'error', message: `Rejection: ${errorMsg}` });
+};
+
 let wasmModule = null;
 let testCount = 0;
 let passCount = 0;
@@ -74,13 +88,22 @@ self.onmessage = async function(e) {
                 },
                 printErr: function(text) {
                     processOutput(text);
+                    // Also post as error for visibility
+                    self.postMessage({ type: 'output', text: '[STDERR] ' + text });
+                },
+                onAbort: function(what) {
+                    const msg = 'WASM Abort: ' + (what || 'unknown reason');
+                    console.error(msg);
+                    self.postMessage({ type: 'error', message: msg });
                 }
             });
 
             self.postMessage({ type: 'status', message: 'WASM runtime initialized' });
             self.postMessage({ type: 'loaded' });
         } catch (error) {
-            self.postMessage({ type: 'error', message: error.message });
+            const errorMsg = error?.message || error?.toString() || String(error) || 'Unknown error';
+            console.error('Worker load error:', error);
+            self.postMessage({ type: 'error', message: errorMsg });
         }
     } else if (type === 'run') {
         if (!wasmModule) {
@@ -116,7 +139,9 @@ self.onmessage = async function(e) {
                 failed: failCount
             });
         } catch (error) {
-            self.postMessage({ type: 'error', message: error.message });
+            const errorMsg = error?.message || error?.toString() || String(error) || 'Unknown error';
+            console.error('Worker run error:', error);
+            self.postMessage({ type: 'error', message: errorMsg });
         }
     }
 };

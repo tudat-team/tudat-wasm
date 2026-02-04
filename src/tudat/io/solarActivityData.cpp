@@ -20,7 +20,7 @@
 #include <vector>
 #include <stdexcept>
 
-#include "tudat/basics/testMacros.h"
+// testMacros.h removed - not needed here and brings in Boost.Test which isn't WASM compatible
 #include "tudat/io/solarActivityData.h"
 #include "tudat/io/parsedDataVectorUtilities.h"
 #include "tudat/io/parseSolarActivityData.h"

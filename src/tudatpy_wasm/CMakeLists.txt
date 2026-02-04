@@ -97,10 +97,16 @@ target_include_directories(tudatpy_wasm_bindings
         ${Boost_INCLUDE_DIRS}
 )
 
-# Add TUDAT_VERSION definition
+# Add TUDAT_VERSION definition and CALCEPH flag for WASM builds
 target_compile_definitions(tudatpy_wasm_bindings PRIVATE
     TUDAT_VERSION="${PROJECT_VERSION}"
+    $<$<BOOL:${TUDAT_BUILD_WITH_CALCEPH}>:TUDAT_BUILD_WITH_CALCEPH=1>
 )
+
+# Include CALCEPH headers if available
+if(TUDAT_BUILD_WITH_CALCEPH AND CALCEPH_INCLUDE_DIRS)
+    target_include_directories(tudatpy_wasm_bindings SYSTEM PRIVATE ${CALCEPH_INCLUDE_DIRS})
+endif()
 
 # Link against Tudat libraries (same dependencies as PyBind version)
 # This MUST match Tudat_ESTIMATION_LIBRARIES for full 1:1 parity with native Tudat
@@ -150,6 +156,9 @@ target_link_libraries(tudatpy_wasm_bindings
         tudat_sofa_interface
         tudat_spice_interface
 
+        # CALCEPH library for binary SPK reading (WASM only)
+        $<$<BOOL:${TUDAT_BUILD_WITH_CALCEPH}>:calceph>
+
         # Basic mathematics and utilities
         tudat_basic_astrodynamics
         tudat_numerical_quadrature
@@ -165,7 +174,10 @@ target_link_libraries(tudatpy_wasm_bindings
 # Main WASM Executable Target
 # ============================================================================
 
-add_executable(tudatpy_wasm ${WASM_KERNEL_SOURCES})
+# Create a minimal stub for the executable - all bindings are in the library
+# This avoids duplicate symbol errors with --whole-archive
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/wasm_stub.cpp" "// Stub file - all bindings in library\n")
+add_executable(tudatpy_wasm "${CMAKE_CURRENT_BINARY_DIR}/wasm_stub.cpp")
 
 target_link_libraries(tudatpy_wasm
     PRIVATE
@@ -213,11 +225,13 @@ set_target_properties(tudatpy_wasm PROPERTIES
 # Node.js Test Target (for automated testing)
 # ============================================================================
 
-add_executable(tudatpy_wasm_node ${WASM_KERNEL_SOURCES})
+add_executable(tudatpy_wasm_node "${CMAKE_CURRENT_BINARY_DIR}/wasm_stub.cpp")
 
 target_link_libraries(tudatpy_wasm_node
     PRIVATE
+        -Wl,--whole-archive
         tudatpy_wasm_bindings
+        -Wl,--no-whole-archive
 )
 
 set(WASM_NODE_LINK_FLAGS
