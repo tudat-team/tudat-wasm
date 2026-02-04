@@ -73,10 +73,11 @@ bool calceph_is_available(const std::string& target, const std::string& observer
  * @param secondsSinceJ2000 Epoch in seconds since J2000 (TDB)
  * @return Cartesian state [x, y, z, vx, vy, vz] in m and m/s
  */
-Eigen::Vector6d calceph_get_state(const std::string& target, const std::string& observer,
+tudatpy_wasm::Vector6dWrapper calceph_get_state(const std::string& target, const std::string& observer,
                                    const std::string& frame, double secondsSinceJ2000)
 {
-    return te::CalcephEphemerisManager::getInstance().getState(target, observer, frame, secondsSinceJ2000);
+    Eigen::Vector6d state = te::CalcephEphemerisManager::getInstance().getState(target, observer, frame, secondsSinceJ2000);
+    return tudatpy_wasm::Vector6dWrapper(state);
 }
 
 /**
@@ -127,14 +128,17 @@ std::string calceph_naif_id_to_body_name(int naifId)
     return te::CalcephEphemerisManager::naifIdToBodyName(naifId);
 }
 
+// Simple test function to verify bindings are working
+bool calceph_test_available()
+{
+    return true;
+}
+
 EMSCRIPTEN_BINDINGS(tudatpy_interface_calceph) {
     using namespace emscripten;
 
-    // Register std::vector<std::string> if not already registered
-    register_vector<std::string>("vector_string_calceph");
-
-    // Register std::vector<double> for time bounds
-    register_vector<double>("vector_double_calceph");
+    // Simple test function first
+    function("calceph_test_available", &calceph_test_available);
 
     // Main CALCEPH functions - named to match JavaScript expectations
     function("calceph_load_spk", &calceph_load_spk);
