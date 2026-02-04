@@ -157,14 +157,14 @@ void testTLEEphemeris();
 void testOptimizationProblemSetup();
 void testGalileanMoonsPattern();
 
-// Estimation module tests (testEstimation.cpp) - DISABLED pending API update
-// void testStateTransitionMatrix();
-// void testSimpleBatchOrbitDetermination();
-// void testCovariancePropagation();
-// void testEstimationConvergenceChecker();
-// void testObservationTypesAndLinks();
-// void testFormalErrorPropagation();
-// void testMultiBodyEstimationSetup();
+// Estimation module tests (testEstimation.cpp)
+void testStateTransitionMatrix();
+void testSimpleBatchOrbitDetermination();
+void testCovariancePropagation();
+void testEstimationConvergenceChecker();
+void testObservationTypesAndLinks();
+void testFormalErrorPropagation();
+void testMultiBodyEstimationSetup();
 
 // Edge case tests (testEdgeCases.cpp)
 void testNaNInfinityHandling();
@@ -346,16 +346,16 @@ int main()
         testOptimizationProblemSetup();       // Optimization problem (PyGMO pattern)
         testGalileanMoonsPattern();           // Galilean moons multi-body estimation
 
-        // Estimation module tests (temporarily disabled - API updates needed)
-        std::cout << "\n=== ESTIMATION MODULE TESTS (DISABLED - API UPDATE NEEDED) ===" << std::endl;
+        // Estimation module tests (comprehensive orbit determination)
+        std::cout << "\n=== ESTIMATION MODULE TESTS ===" << std::endl;
 
-        // testStateTransitionMatrix();          // State transition matrix computation
-        // testSimpleBatchOrbitDetermination();  // Batch OD setup and parameter estimation
-        // testCovariancePropagation();          // Covariance propagation through dynamics
-        // testEstimationConvergenceChecker();   // Convergence checking functionality
-        // testObservationTypesAndLinks();       // Observable type definitions
-        // testFormalErrorPropagation();         // Formal error computation
-        // testMultiBodyEstimationSetup();       // Multi-body estimation (Galilean moons)
+        testStateTransitionMatrix();          // State transition matrix computation
+        testSimpleBatchOrbitDetermination();  // Batch OD setup and parameter estimation
+        testCovariancePropagation();          // Covariance propagation through dynamics
+        testEstimationConvergenceChecker();   // Convergence checking functionality
+        testObservationTypesAndLinks();       // Observable type definitions
+        testFormalErrorPropagation();         // Formal error computation
+        testMultiBodyEstimationSetup();       // Multi-body estimation (Galilean moons)
 
         // Edge case and boundary condition tests
         std::cout << "\n=== EDGE CASE TESTS ===" << std::endl;

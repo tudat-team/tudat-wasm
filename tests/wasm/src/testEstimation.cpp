@@ -441,25 +441,30 @@ void testEstimationConvergenceChecker()
 
     checkTrue("Convergence checker created", checker != nullptr);
 
-    // Test convergence scenarios
-    // Scenario 1: Not converged (first iteration)
-    bool converged1 = checker->isEstimationConverged(0, 1.0, 0.0);
+    // Test convergence scenarios using residual history vectors
+    // Scenario 1: Not converged (first iteration, single residual)
+    std::vector<double> history1 = {1.0};
+    bool converged1 = checker->isEstimationConverged(0, history1);
     checkTrue("Not converged on first iteration", !converged1);
 
     // Scenario 2: Not converged (second iteration, large residual change)
-    bool converged2 = checker->isEstimationConverged(1, 0.5, 1.0);
+    std::vector<double> history2 = {1.0, 0.5};
+    bool converged2 = checker->isEstimationConverged(1, history2);
     checkTrue("Not converged with large change", !converged2);
 
     // Scenario 3: Converged (small residual change after minimum iterations)
-    bool converged3 = checker->isEstimationConverged(3, 0.0001, 0.00011);
+    std::vector<double> history3 = {1.0, 0.1, 0.00011, 0.0001};
+    bool converged3 = checker->isEstimationConverged(3, history3);
     checkTrue("Converged with small change", converged3);
 
     // Scenario 4: Converged (very small residual)
-    bool converged4 = checker->isEstimationConverged(3, 1e-7, 1e-6);
+    std::vector<double> history4 = {1.0, 0.01, 1e-6, 1e-7};
+    bool converged4 = checker->isEstimationConverged(3, history4);
     checkTrue("Converged with tiny residual", converged4);
 
     // Scenario 5: Max iterations reached
-    bool converged5 = checker->isEstimationConverged(10, 1.0, 0.9);
+    std::vector<double> history5 = {1.0, 0.95, 0.92, 0.91, 0.905, 0.902, 0.901, 0.9005, 0.9002, 0.9001, 0.9};
+    bool converged5 = checker->isEstimationConverged(10, history5);
     checkTrue("Converged at max iterations", converged5);
 
     std::cout << "[INFO] Convergence checker test passed" << std::endl;

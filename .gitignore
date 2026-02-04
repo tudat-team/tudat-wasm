@@ -101,5 +101,8 @@ tests/wasm/web/*.js
 !tests/wasm/web/app.js
 !tests/wasm/web/testWorker.js
 
+# CesiumJS (loaded from CDN, not committed)
+**/cesium/
+
 # Agent working notes
 Agents.md

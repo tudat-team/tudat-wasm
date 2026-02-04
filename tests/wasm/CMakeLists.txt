@@ -19,7 +19,7 @@ set(WASM_TEST_SOURCES
     src/testEphemerides.cpp
     src/testEarthOrientation.cpp
     src/testExamples.cpp
-    # src/testEstimation.cpp  # Disabled - needs API update for new Tudat
+    src/testEstimation.cpp
     src/testEdgeCases.cpp
 )
 
@@ -193,6 +193,13 @@ if(EMSCRIPTEN)
         tudat_data
         tudat_sofa_interface
         tudat_spice_interface
+        # Estimation-specific libraries
+        tudat_observation_models
+        tudat_estimatable_parameters
+        tudat_orbit_determination
+        tudat_observation_partials
+        tudat_acceleration_partials
+        tudat_torque_partials
         ${Sofa_LIBRARIES}
         ${CSpice_LIBRARIES}
         ${NRLMSISE00_LIBRARIES}
