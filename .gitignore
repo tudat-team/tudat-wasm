@@ -78,6 +78,10 @@ install_manifest.txt
 *.out
 *.app
 
+# CMake test artifacts
+a.out.js
+a.out.wasm
+
 # Python
 __pycache__/
 *.py[cod]
@@ -86,10 +90,10 @@ __pycache__/
 *.egg-info/
 .eggs/
 
-# Documentation build output
-docs/api/
+# Documentation build output (keep docs/ for GitHub Pages)
 !docs/index.html
 !docs/.nojekyll
+!docs/api/
 
 # Test artifacts
 tests/wasm/web/*.wasm
