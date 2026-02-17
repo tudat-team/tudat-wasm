@@ -167,14 +167,14 @@ export function addIntegratorComparisonVisualization(viewer, orbitEntities, peri
     const clock = viewer.clock;
     const startTime = clock.startTime;
 
-    const sgp4Positions = new Cesium.SampledPositionProperty();
-    sgp4Positions.setInterpolationOptions({
+    const j2Positions = new Cesium.SampledPositionProperty();
+    j2Positions.setInterpolationOptions({
         interpolationDegree: 5,
         interpolationAlgorithm: Cesium.LagrangePolynomialApproximation
     });
 
-    const j2Positions = new Cesium.SampledPositionProperty();
-    j2Positions.setInterpolationOptions({
+    const fullForcePositions = new Cesium.SampledPositionProperty();
+    fullForcePositions.setInterpolationOptions({
         interpolationDegree: 5,
         interpolationAlgorithm: Cesium.LagrangePolynomialApproximation
     });
@@ -189,22 +189,22 @@ export function addIntegratorComparisonVisualization(viewer, orbitEntities, peri
         const t = ephemerisData[idx];
         const sampleTime = Cesium.JulianDate.addSeconds(startTime, t, new Cesium.JulianDate());
 
-        const sgp4Pos = new Cesium.Cartesian3(
+        const j2Pos = new Cesium.Cartesian3(
             ephemerisData[idx + 1],
             ephemerisData[idx + 2],
             ephemerisData[idx + 3]
         );
-        const j2Pos = new Cesium.Cartesian3(
+        const fullForcePos = new Cesium.Cartesian3(
             ephemerisData[idx + 4],
             ephemerisData[idx + 5],
             ephemerisData[idx + 6]
         );
 
-        sgp4Positions.addSample(sampleTime, sgp4Pos);
         j2Positions.addSample(sampleTime, j2Pos);
+        fullForcePositions.addSample(sampleTime, fullForcePos);
 
         if (i < samplesPerOrbit) {
-            orbitPositions.push(sgp4Pos);
+            orbitPositions.push(j2Pos);
         }
 
         const dx = ephemerisData[idx + 1] - ephemerisData[idx + 4];
@@ -230,11 +230,11 @@ export function addIntegratorComparisonVisualization(viewer, orbitEntities, peri
     });
     orbitEntities.push(refOrbit);
 
-    const sgp4Sat = viewer.entities.add({
-        name: 'SGP4 (TLE)',
-        description: `SGP4 simplified perturbations\nUsed for TLE propagation\nIncludes simplified J2, drag`,
-        position: sgp4Positions,
-        orientation: new Cesium.VelocityOrientationProperty(sgp4Positions),
+    const j2Sat = viewer.entities.add({
+        name: 'J2 Only',
+        description: `J2 oblateness perturbation only\n${numOrbits} orbits propagated`,
+        position: j2Positions,
+        orientation: new Cesium.VelocityOrientationProperty(j2Positions),
         point: {
             pixelSize: 12,
             color: Cesium.Color.CYAN,
@@ -252,20 +252,20 @@ export function addIntegratorComparisonVisualization(viewer, orbitEntities, peri
             })
         },
         label: {
-            text: 'SGP4',
+            text: 'J2',
             font: '12px monospace',
             fillColor: Cesium.Color.CYAN,
             pixelOffset: new Cesium.Cartesian2(0, -15)
         },
         viewFrom: new Cesium.Cartesian3(-50000, 0, -20000)
     });
-    orbitEntities.push(sgp4Sat);
+    orbitEntities.push(j2Sat);
 
-    const j2Sat = viewer.entities.add({
-        name: 'J2 Numerical',
-        description: `RK4 numerical integration\nwith J2 oblateness perturbation\n${numOrbits} orbits propagated`,
-        position: j2Positions,
-        orientation: new Cesium.VelocityOrientationProperty(j2Positions),
+    const fullForceSat = viewer.entities.add({
+        name: 'Full Force',
+        description: `Full force model propagation\nIncludes all perturbations\n${numOrbits} orbits propagated`,
+        position: fullForcePositions,
+        orientation: new Cesium.VelocityOrientationProperty(fullForcePositions),
         point: {
             pixelSize: 12,
             color: Cesium.Color.LIME,
@@ -283,13 +283,13 @@ export function addIntegratorComparisonVisualization(viewer, orbitEntities, peri
             })
         },
         label: {
-            text: 'J2 Num',
+            text: 'Full Force',
             font: '12px monospace',
             fillColor: Cesium.Color.LIME,
             pixelOffset: new Cesium.Cartesian2(0, -15)
         }
     });
-    orbitEntities.push(j2Sat);
+    orbitEntities.push(fullForceSat);
 
     // Return separation data for chart rendering
     return { separationData, totalTime, startTime, maxSep };
