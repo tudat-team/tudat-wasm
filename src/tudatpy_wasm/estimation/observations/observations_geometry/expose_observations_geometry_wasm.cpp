@@ -25,12 +25,10 @@ WASM_MODULE_PATH("estimation_observations_observations_geometry")
 EMSCRIPTEN_BINDINGS(tudatpy_estimation_observations_observations_geometry) {
     using namespace emscripten;
 
-    // ObservationAncilliarySimulationSettings class
-    class_<tom::ObservationAncilliarySimulationSettings>(
-        "estimation_observations_observations_geometry_ObservationAncilliarySimulationSettings")
-        .smart_ptr<std::shared_ptr<tom::ObservationAncilliarySimulationSettings>>(
-            "shared_ptr_ObservationAncilliarySimulationSettings")
-        .constructor<>();
+    // NOTE: ObservationAncilliarySimulationSettings class is registered in
+    // estimation/observations_setup/ancillary_settings/expose_ancillary_settings_wasm.cpp
+    // Do not register here to avoid "Cannot register type twice" errors.
+    // class_<tom::ObservationAncilliarySimulationSettings>(...);
 }
 
 #endif

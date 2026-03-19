@@ -25,23 +25,10 @@ WASM_MODULE_PATH("dynamics_parameters")
 EMSCRIPTEN_BINDINGS(tudatpy_dynamics_parameters) {
     using namespace emscripten;
 
-    // EstimatableParameterSet class
-    class_<tep::EstimatableParameterSet<double>>(
-        "dynamics_parameters_EstimatableParameterSet")
-        .smart_ptr<std::shared_ptr<tep::EstimatableParameterSet<double>>>(
-            "shared_ptr_EstimatableParameterSet")
-        .function("parameter_set_size",
-            &tep::EstimatableParameterSet<double>::getEstimatedParameterSetSize)
-        .function("initial_states_size",
-            &tep::EstimatableParameterSet<double>::getInitialDynamicalStateParameterSize)
-        .function("initial_single_arc_states_size",
-            &tep::EstimatableParameterSet<double>::getInitialDynamicalSingleArcStateParameterSize)
-        .function("initial_multi_arc_states_size",
-            &tep::EstimatableParameterSet<double>::getInitialDynamicalMultiArcStateParameterSize)
-        .function("constraints_size",
-            &tep::EstimatableParameterSet<double>::getConstraintSize)
-        .function("get_parameter_descriptions",
-            &tep::EstimatableParameterSet<double>::getParametersDescriptions);
+    // NOTE: EstimatableParameterSet class is registered in
+    // dynamics/parameters_setup/expose_parameters_setup_wasm.cpp
+    // Do not register here to avoid "Cannot register type twice" errors.
+    // class_<tep::EstimatableParameterSet<double>>(...);
 
     // Helper function to print parameter names
     function("dynamics_parameters_print_parameter_names",

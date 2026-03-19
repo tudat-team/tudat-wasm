@@ -27,9 +27,11 @@ set(WASM_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/shared_ptr_wasm.h
 )
 
-# Core binding source - main entry point
+# Core binding source - main entry point + infrastructure bindings
 set(WASM_KERNEL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/kernel_wasm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/eigen_wasm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/stl_wasm.cpp
 )
 
 # Collect all module binding sources (will grow as modules are implemented)
@@ -102,6 +104,13 @@ target_compile_definitions(tudatpy_wasm_bindings PRIVATE
     TUDAT_VERSION="${PROJECT_VERSION}"
     $<$<BOOL:${TUDAT_BUILD_WITH_CALCEPH}>:TUDAT_BUILD_WITH_CALCEPH=1>
 )
+
+# Allow overriding the WASM data path at build time for NODERAWFS builds
+if(TUDAT_WASM_DATA_PATH)
+    target_compile_definitions(tudatpy_wasm_bindings PUBLIC
+        TUDAT_WASM_DATA_PATH="${TUDAT_WASM_DATA_PATH}")
+    message(STATUS "WASM data path: ${TUDAT_WASM_DATA_PATH}")
+endif()
 
 # Include CALCEPH headers if available
 if(TUDAT_BUILD_WITH_CALCEPH AND CALCEPH_INCLUDE_DIRS)

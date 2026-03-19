@@ -265,6 +265,12 @@ else ()
     add_definitions(-DTUDAT_BUILD_WITH_EXTENDED_PRECISION_PROPAGATION_TOOLS=1)
 endif ()
 
+# Override WASM data path for NODERAWFS builds (all tudat libraries need this)
+if(TUDAT_WASM_DATA_PATH)
+    add_definitions(-DTUDAT_WASM_DATA_PATH="${TUDAT_WASM_DATA_PATH}")
+    message(STATUS "Global WASM data path: ${TUDAT_WASM_DATA_PATH}")
+endif()
+
 # +============================================================================
 # INSTALL TREE CONFIGURATION (Project name independent)
 #  Offer the user the choice of overriding the installation directories.

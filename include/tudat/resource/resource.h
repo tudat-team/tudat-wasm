@@ -35,6 +35,9 @@ namespace paths
 
 inline std::string get_resources_path()
 {
+    // Allow runtime override via TUDAT_DATA environment variable (useful with NODERAWFS)
+    const char* envPath = std::getenv("TUDAT_DATA");
+    if (envPath && envPath[0] != '\0') return envPath;
     return TUDAT_WASM_DATA_PATH;
 }
 

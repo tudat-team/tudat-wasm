@@ -26,11 +26,8 @@ WASM_MODULE_PATH("dynamics_environment_setup_ground_station")
 EMSCRIPTEN_BINDINGS(tudatpy_dynamics_environment_setup_ground_station) {
     using namespace emscripten;
 
-    // PositionElementTypes enum
-    enum_<tcc::PositionElementTypes>("dynamics_environment_setup_ground_station_PositionElementTypes")
-        .value("cartesian_position", tcc::cartesian_position)
-        .value("spherical_position", tcc::spherical_position)
-        .value("geodetic_position", tcc::geodetic_position);
+    // PositionElementTypes enum — registered in astro/element_conversion, not here
+    // (Emscripten embind does not allow registering the same C++ type twice)
 
     // StationMotionModelTypes enum
     enum_<tss::StationMotionModelTypes>("dynamics_environment_setup_ground_station_StationMotionModelTypes")

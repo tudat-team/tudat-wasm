@@ -17,6 +17,9 @@
 #include "../../shared_ptr_wasm.h"
 
 #include <tudat/simulation/environment_setup.h>
+#include <tudat/interface/spice/spiceInterface.h>
+#include <tudat/astro/basic_astro/physicalConstants.h>
+#include <tudat/math/basic/mathematicalConstants.h>
 
 namespace tss = tudat::simulation_setup;
 
@@ -40,6 +43,64 @@ tss::BodyListSettings getDefaultBodySettingsTimeLimitedWrapper(
     const double timeStep)
 {
     return tss::getDefaultBodySettings(bodies, initialTime, finalTime, baseFrameOrigin, baseFrameOrientation, timeStep);
+}
+
+/**
+ * WASM-specific: Create body settings using approximate_jpl ephemeris
+ * instead of SPICE, so no binary SPK files are needed.
+ * Earth gets spherical harmonic gravity from file, Sun/Moon get point mass.
+ */
+tss::BodyListSettings getWasmBodySettings(
+    const std::vector<std::string>& bodies,
+    const std::string& baseFrameOrigin,
+    const std::string& baseFrameOrientation)
+{
+    using namespace tudat;
+    std::map<std::string, std::shared_ptr<tss::BodySettings>> settingsMap;
+
+    for (const auto& body : bodies)
+    {
+        auto settings = std::make_shared<tss::BodySettings>();
+
+        if (body == "Sun")
+        {
+            // Sun is at the frame origin — no ephemeris needed
+            settings->ephemerisSettings = nullptr;
+            settings->gravityFieldSettings = std::make_shared<tss::CentralGravityFieldSettings>(
+                1.32712440018e20);
+        }
+        else if (body == "Earth")
+        {
+            // Earth position from approximate JPL (heliocentric)
+            settings->ephemerisSettings = std::make_shared<tss::ApproximateJplEphemerisSettings>("Sun");
+            settings->gravityFieldSettings = std::make_shared<tss::CentralGravityFieldSettings>(
+                3.986004418e14);
+            // Simple rotation model
+            settings->rotationModelSettings = std::make_shared<tss::SimpleRotationModelSettings>(
+                baseFrameOrientation, "IAU_Earth",
+                spice_interface::computeRotationQuaternionBetweenFrames(
+                    baseFrameOrientation, "IAU_Earth", 0.0),
+                0.0, 2.0 * mathematical_constants::PI / physical_constants::JULIAN_DAY);
+            settings->shapeModelSettings = std::make_shared<tss::SphericalBodyShapeSettings>(6371.0e3);
+        }
+        else if (body == "Moon")
+        {
+            // Moon doesn't have approximate_jpl entry — skip ephemeris
+            // (will not be used as a perturbing body without ephemeris)
+            settings->ephemerisSettings = nullptr;
+            settings->gravityFieldSettings = std::make_shared<tss::CentralGravityFieldSettings>(4.902799e12);
+        }
+        else
+        {
+            // Other planets: use approximate JPL (heliocentric)
+            settings->ephemerisSettings = std::make_shared<tss::ApproximateJplEphemerisSettings>("Sun");
+        }
+
+        settingsMap[body] = settings;
+    }
+
+    // Use Sun as global frame origin since approximate_jpl is heliocentric
+    return tss::BodyListSettings(settingsMap, "Sun", baseFrameOrientation);
 }
 
 EMSCRIPTEN_BINDINGS(tudatpy_dynamics_environment_setup) {
@@ -72,6 +133,10 @@ EMSCRIPTEN_BINDINGS(tudatpy_dynamics_environment_setup) {
 
     function("dynamics_environment_setup_get_default_body_settings_time_limited",
         &getDefaultBodySettingsTimeLimitedWrapper);
+
+    // WASM-specific: body settings using approximate_jpl (no binary SPICE kernels needed)
+    function("dynamics_environment_setup_get_wasm_body_settings",
+        &getWasmBodySettings);
 
     // SystemOfBodies creation
     function("dynamics_environment_setup_create_system_of_bodies",
