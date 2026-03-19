@@ -64,7 +64,10 @@ EMSCRIPTEN_BINDINGS(tudatpy_dynamics_environment) {
         .function("getBody", &tss::SystemOfBodies::getBody)
         .function("at", &tss::SystemOfBodies::at)
         .function("getFrameOrigin", &tss::SystemOfBodies::getFrameOrigin)
-        .function("getFrameOrientation", &tss::SystemOfBodies::getFrameOrientation);
+        .function("getFrameOrientation", &tss::SystemOfBodies::getFrameOrientation)
+        .function("createEmptyBody", optional_override([](tss::SystemOfBodies& self, const std::string& name) {
+            self.createEmptyBody(name);
+        }));
 }
 
 #endif

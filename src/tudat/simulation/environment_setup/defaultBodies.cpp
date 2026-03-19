@@ -566,14 +566,36 @@ const static std::string pysctrackGroundStationPosFile = tudat::paths::getStatio
 const static std::string pysctrackGroundStationVelFile = tudat::paths::getStationLocationDataPath( ) + "/glo.vel";
 const static std::string pysctrackGroundStationCodesFile = tudat::paths::getStationLocationDataPath( ) + "/ns_codes.dat";
 
-const static std::map< std::string, Eigen::Vector3d > approximateGroundStationPositionsFromFile =
-        utilities::getMapFromFile< std::string, Eigen::Vector3d >( pysctrackGroundStationPosFile, '$', " \t" );
-const static std::map< std::string, Eigen::Vector3d > approximateGroundStationPositionReferenceEpochsFromFile =
-        utilities::getMapFromFile< std::string, Eigen::Vector3d >( pysctrackGroundStationPosFile, '$', " \t", 3 );
-const static std::map< std::string, Eigen::Vector3d > approximateGroundStationVelocitiesFromFile =
-        utilities::getMapFromFile< std::string, Eigen::Vector3d >( pysctrackGroundStationVelFile, '$', " \t" );
-const static std::map< std::string, std::string > groundStationCodesFromFile =
-        utilities::getMapFromFile< std::string, std::string >( pysctrackGroundStationCodesFile, '*', " \t" );
+// Lazy-load station data to avoid static initialization failures (especially in WASM)
+static std::map< std::string, Eigen::Vector3d >& getApproxGSPositionsFromFile() {
+    static std::map< std::string, Eigen::Vector3d > m;
+    static bool loaded = false;
+    if (!loaded) { try { m = utilities::getMapFromFile< std::string, Eigen::Vector3d >( pysctrackGroundStationPosFile, '$', " \t" ); } catch(...) {} loaded = true; }
+    return m;
+}
+static std::map< std::string, Eigen::Vector3d >& getApproxGSPositionEpochsFromFile() {
+    static std::map< std::string, Eigen::Vector3d > m;
+    static bool loaded = false;
+    if (!loaded) { try { m = utilities::getMapFromFile< std::string, Eigen::Vector3d >( pysctrackGroundStationPosFile, '$', " \t", 3 ); } catch(...) {} loaded = true; }
+    return m;
+}
+static std::map< std::string, Eigen::Vector3d >& getApproxGSVelocitiesFromFile() {
+    static std::map< std::string, Eigen::Vector3d > m;
+    static bool loaded = false;
+    if (!loaded) { try { m = utilities::getMapFromFile< std::string, Eigen::Vector3d >( pysctrackGroundStationVelFile, '$', " \t" ); } catch(...) {} loaded = true; }
+    return m;
+}
+static std::map< std::string, std::string >& getGSCodesFromFile() {
+    static std::map< std::string, std::string > m;
+    static bool loaded = false;
+    if (!loaded) { try { m = utilities::getMapFromFile< std::string, std::string >( pysctrackGroundStationCodesFile, '*', " \t" ); } catch(...) {} loaded = true; }
+    return m;
+}
+// Aliases for backward compatibility
+#define approximateGroundStationPositionsFromFile getApproxGSPositionsFromFile()
+#define approximateGroundStationPositionReferenceEpochsFromFile getApproxGSPositionEpochsFromFile()
+#define approximateGroundStationVelocitiesFromFile getApproxGSVelocitiesFromFile()
+#define groundStationCodesFromFile getGSCodesFromFile()
 
 std::map< std::string, Eigen::Vector3d > getCombinedApproximateGroundStationPositions( )
 {

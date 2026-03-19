@@ -21,6 +21,7 @@
 
 namespace tp = tudat::propagators;
 namespace tss = tudat::simulation_setup;
+using tudatpy_wasm::VectorXdWrapper;
 
 // Wrapper function to create dynamics simulator (template function with default arg)
 std::shared_ptr<tp::DynamicsSimulator<double, double>> createDynamicsSimulatorWrapper(
@@ -29,6 +30,30 @@ std::shared_ptr<tp::DynamicsSimulator<double, double>> createDynamicsSimulatorWr
     const bool areEquationsOfMotionToBeIntegrated)
 {
     return tss::createDynamicsSimulator<double, double>(bodies, propagatorSettings, areEquationsOfMotionToBeIntegrated);
+}
+
+// Convert map<double, VectorXd> to map<double, VectorXdWrapper> for Embind
+std::map<double, VectorXdWrapper> convertStateHistory(
+    const std::map<double, Eigen::VectorXd>& raw)
+{
+    std::map<double, VectorXdWrapper> result;
+    for (const auto& entry : raw) {
+        result.emplace(entry.first, VectorXdWrapper(entry.second));
+    }
+    return result;
+}
+
+// Wrapper to get state history with VectorXdWrapper values
+std::map<double, VectorXdWrapper> getStateHistoryWrapped(
+    tp::SingleArcDynamicsSimulator<double, double>& sim)
+{
+    return convertStateHistory(sim.getEquationsOfMotionNumericalSolution());
+}
+
+std::map<double, VectorXdWrapper> getDependentVariableHistoryWrapped(
+    tp::SingleArcDynamicsSimulator<double, double>& sim)
+{
+    return convertStateHistory(sim.getDependentVariableHistory());
 }
 
 WASM_MODULE_PATH("dynamics_simulator")
@@ -58,11 +83,9 @@ EMSCRIPTEN_BINDINGS(tudatpy_dynamics_simulator) {
                 const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>&)>(
                 &tp::SingleArcDynamicsSimulator<double, double>::integrateEquationsOfMotion))
         .function("getEquationsOfMotionNumericalSolution",
-            &tp::SingleArcDynamicsSimulator<double, double>::getEquationsOfMotionNumericalSolution)
-        .function("getEquationsOfMotionNumericalSolutionRaw",
-            &tp::SingleArcDynamicsSimulator<double, double>::getEquationsOfMotionNumericalSolutionRaw)
+            &getStateHistoryWrapped)
         .function("getDependentVariableHistory",
-            &tp::SingleArcDynamicsSimulator<double, double>::getDependentVariableHistory)
+            &getDependentVariableHistoryWrapped)
         .function("getCumulativeComputationTimeHistory",
             &tp::SingleArcDynamicsSimulator<double, double>::getCumulativeComputationTimeHistory)
         .function("getCumulativeNumberOfFunctionEvaluations",

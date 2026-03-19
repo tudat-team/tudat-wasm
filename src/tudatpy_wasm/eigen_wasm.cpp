@@ -24,13 +24,12 @@ EMSCRIPTEN_BINDINGS(eigen_types) {
     using namespace emscripten;
     using namespace tudatpy_wasm;
 
-    // Vector3d
+    // Vector3d (fixed size 3 — no size() method needed)
     class_<Vector3dWrapper>("Vector3d")
         .constructor<>()
         .constructor<double, double, double>()
         .function("get", &Vector3dWrapper::get)
         .function("set", &Vector3dWrapper::set)
-        .function("size", &Vector3dWrapper::size)
         .property("x", &Vector3dWrapper::x, &Vector3dWrapper::setX)
         .property("y", &Vector3dWrapper::y, &Vector3dWrapper::setY)
         .property("z", &Vector3dWrapper::z, &Vector3dWrapper::setZ)

@@ -625,9 +625,9 @@ void loadSpiceKernelInTudat( const std::string &fileName )
     setSpiceErrorHandling( );
 
 #ifdef __EMSCRIPTEN__
-    // In WASM, furnsh_c crashes due to f2c FORTRAN I/O issues.
-    // For text kernels (.tls, .tpc, .tf), use lmpool_c which loads from memory.
-    // Binary kernels (.bsp, .bpc) are not supported in WASM.
+    // In WASM with NODERAWFS (Node.js), furnsh_c works directly via real FS.
+    // In browser WASM, furnsh_c fails for binary kernels due to f2c I/O.
+    // Strategy: try furnsh_c first (works with NODERAWFS), fall back to lmpool_c for text.
 
     // Check file extension to determine kernel type
     std::string extension = "";
@@ -676,12 +676,20 @@ void loadSpiceKernelInTudat( const std::string &fileName )
                 trimmedLine = "";
             }
 
-            if (trimmedLine.find("\\begindata") != std::string::npos) {
-                inDataSection = true;
-                continue;  // Skip the marker line itself
-            } else if (trimmedLine.find("\\begintext") != std::string::npos) {
-                inDataSection = false;
-                continue;  // Skip the marker line itself
+            // Markers must appear at the start of the trimmed line (not as substring in comments)
+            if (trimmedLine == "\\begindata" || trimmedLine.rfind("\\begindata", 0) == 0) {
+                // Verify it's truly a standalone marker (only whitespace may follow)
+                auto afterMarker = trimmedLine.substr(10);
+                if (afterMarker.empty() || afterMarker.find_first_not_of(" \t") == std::string::npos) {
+                    inDataSection = true;
+                    continue;
+                }
+            } else if (trimmedLine == "\\begintext" || trimmedLine.rfind("\\begintext", 0) == 0) {
+                auto afterMarker = trimmedLine.substr(10);
+                if (afterMarker.empty() || afterMarker.find_first_not_of(" \t") == std::string::npos) {
+                    inDataSection = false;
+                    continue;
+                }
             }
 
             if (inDataSection) {
@@ -719,10 +727,20 @@ void loadSpiceKernelInTudat( const std::string &fileName )
             handleSpiceException();
         }
     } else {
-        // Binary kernels - throw informative error
-        throw std::runtime_error("SPICE WASM: Binary kernels (" + extension +
-            ") are not supported in browser. File: " + fileName +
-            ". Only text kernels (.tls, .tpc, .tf, .ti, .tsc, .mk) can be loaded.");
+        // Binary kernels (.bsp, .bpc, etc.) — try furnsh_c directly.
+        // This works with NODERAWFS=1 (Node.js builds) where f2c has real filesystem access.
+        // Will fail in browser builds without NODERAWFS.
+        furnsh_c( fileName.c_str( ) );
+        if( failed_c( ) )
+        {
+            // Provide a helpful error message
+            char msg[1841];
+            getmsg_c( "LONG", sizeof(msg), msg );
+            reset_c( );
+            throw std::runtime_error(
+                "SPICE WASM: Failed to load binary kernel: " + fileName +
+                ". This requires NODERAWFS=1 (Node.js target). Error: " + std::string(msg) );
+        }
     }
 #else
     setSpiceErrorHandling( );
